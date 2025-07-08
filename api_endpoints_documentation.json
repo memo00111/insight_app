@@ -1,0 +1,377 @@
+{
+  "api_title": "Insight - Unified AI Services API",
+  "api_version": "2.0.0",
+  "description": "API موحد يجمع تحليل النماذج وقراءة العملات وتحليل المستندات",
+  "base_urls": [
+    "http://localhost:8000",
+    "https://your-domain.com"
+  ],
+  "endpoints": {
+    "main_endpoints": {
+      "/health": {
+        "method": "GET",
+        "description": "نقطة نهاية للتحقق من صحة التطبيق",
+        "response": {
+          "status": "string",
+          "timestamp": "string (datetime)"
+        }
+      },
+      "/": {
+        "method": "GET",
+        "description": "الصفحة الرئيسية للـ API الموحد",
+        "response": {
+          "message": "string",
+          "services": [
+            {
+              "name": "string",
+              "description": "string",
+              "prefix": "string"
+            }
+          ]
+        }
+      }
+    },
+    "form_analyzer_endpoints": {
+      "prefix": "/form",
+      "endpoints": {
+        "/form/check-image": {
+          "method": "POST",
+          "description": "Check image quality and detect language direction automatically. Creates a session to store detected language for future use.",
+          "request": {
+            "file": "UploadFile (image)"
+          },
+          "response": {
+            "language_direction": "string",
+            "quality_good": "boolean",
+            "quality_message": "string",
+            "image_width": "integer",
+            "image_height": "integer",
+            "session_id": "string",
+            "form_explanation": "string (optional)"
+          }
+        },
+        "/form/analyze-form": {
+          "method": "POST",
+          "description": "Main endpoint to analyze a form from an uploaded file. Can use session_id to get previously detected language, or manual language_direction.",
+          "request": {
+            "file": "UploadFile (image)",
+            "session_id": "string (Form data, optional)",
+            "language_direction": "string (Form data, optional)"
+          },
+          "response": {
+            "fields": [
+              {
+                "box_id": "string",
+                "label": "string",
+                "type": "string",
+                "box": "array of 4 floats [x_center, y_center, width, height] (optional)"
+              }
+            ],
+            "form_explanation": "string",
+            "language_direction": "string",
+            "image_width": "integer",
+            "image_height": "integer",
+            "session_id": "string"
+          }
+        },
+        "/form/session/{session_id}": {
+          "method": "DELETE",
+          "description": "Delete a specific session when user is done.",
+          "path_parameters": {
+            "session_id": "string"
+          },
+          "response": {
+            "message": "string"
+          }
+        },
+        "/form/session-info": {
+          "method": "GET",
+          "description": "Get information about active sessions (for debugging/monitoring).",
+          "response": {
+            "active_sessions": "integer",
+            "session_timeout": "integer"
+          }
+        },
+        "/form/text-to-speech": {
+          "method": "POST",
+          "description": "Convert text to speech using the selected provider (Gemini).",
+          "request": {
+            "text": "string",
+            "provider": "string (default: 'gemini')"
+          },
+          "response": "audio file (binary)"
+        },
+        "/form/speech-to-text": {
+          "method": "POST",
+          "description": "Converts speech from an audio file to text using Gemini.",
+          "request": {
+            "file": "UploadFile (audio)",
+            "language_code": "string (default: 'en')"
+          },
+          "response": {
+            "text": "string"
+          }
+        },
+        "/form/annotate-image": {
+          "method": "POST",
+          "description": "Receives the original image and user data, draws the data onto the image, and returns the final annotated image.",
+          "request": {
+            "original_image_b64": "string (base64 encoded image)",
+            "texts_dict": "object (dictionary of text data)",
+            "ui_fields": [
+              {
+                "box_id": "string",
+                "label": "string",
+                "type": "string",
+                "box": "array of 4 floats (optional)"
+              }
+            ]
+          },
+          "response": "image file (binary, PNG format)"
+        },
+        "/form/ping": {
+          "method": "GET",
+          "description": "Health check for form analyzer service",
+          "response": {
+            "msg": "string"
+          }
+        }
+      }
+    },
+    "money_reader_endpoints": {
+      "prefix": "/money",
+      "endpoints": {
+        "/money/analyze": {
+          "method": "POST",
+          "description": "تحليل العملة من صورة مرفوعة",
+          "request": {
+            "file": "UploadFile (image)"
+          },
+          "response": {
+            "analysis": "string",
+            "status": "string (default: 'success')"
+          }
+        },
+        "/money/ping": {
+          "method": "GET",
+          "description": "فحص صحة خدمة قراءة العملات",
+          "response": {
+            "service": "string",
+            "status": "string"
+          }
+        }
+      }
+    },
+    "document_reader_endpoints": {
+      "prefix": "/document",
+      "endpoints": {
+        "/document/upload": {
+          "method": "POST",
+          "description": "رفع وتحليل مستند PowerPoint أو PDF",
+          "request": {
+            "file": "UploadFile (PowerPoint or PDF)",
+            "language": "string (Form data, 'arabic' or 'english', default: 'arabic')"
+          },
+          "response": {
+            "session_id": "string",
+            "filename": "string",
+            "file_type": "string (.pptx, .ppt, .pdf)",
+            "total_pages": "integer",
+            "language": "string",
+            "presentation_summary": "string",
+            "status": "string",
+            "message": "string"
+          }
+        },
+        "/document/{session_id}/page/{page_number}": {
+          "method": "GET",
+          "description": "الحصول على تحليل صفحة/شريحة محددة",
+          "path_parameters": {
+            "session_id": "string",
+            "page_number": "integer"
+          },
+          "response": {
+            "page_number": "integer",
+            "title": "string",
+            "original_text": "string",
+            "explanation": "string",
+            "key_points": "array of strings",
+            "slide_type": "string (optional, default: 'content')",
+            "importance_level": "string (optional, default: 'medium')",
+            "image_data": "string (optional, base64 encoded)",
+            "paragraphs": "array of strings (optional)",
+            "word_count": "integer (optional)",
+            "reading_time": "float (optional)"
+          }
+        },
+        "/document/{session_id}/page/{page_number}/image": {
+          "method": "GET",
+          "description": "الحصول على صورة الصفحة/الشريحة",
+          "path_parameters": {
+            "session_id": "string",
+            "page_number": "integer"
+          },
+          "response": "image file (binary, PNG format)"
+        },
+        "/document/{session_id}/summary": {
+          "method": "GET",
+          "description": "الحصول على ملخص شامل للمستند",
+          "path_parameters": {
+            "session_id": "string"
+          },
+          "response": {
+            "session_id": "string",
+            "filename": "string",
+            "total_pages": "integer",
+            "presentation_summary": "string",
+            "slides_analysis": [
+              {
+                "slide_number": "integer",
+                "title": "string",
+                "original_text": "string",
+                "explanation": "string",
+                "key_points": "array of strings",
+                "slide_type": "string",
+                "importance_level": "string"
+              }
+            ],
+            "language": "string"
+          }
+        },
+        "/document/{session_id}/navigate": {
+          "method": "POST",
+          "description": "التنقل في المستند باستخدام الأوامر الصوتية أو النصية",
+          "path_parameters": {
+            "session_id": "string"
+          },
+          "request": {
+            "command": "string (Voice or text command like 'go to page 5', 'وديني لصفحة 10')",
+            "current_page": "integer"
+          },
+          "response": {
+            "success": "boolean",
+            "new_page": "integer (optional)",
+            "message": "string"
+          }
+        },
+        "/document/{session_id}": {
+          "method": "DELETE",
+          "description": "حذف جلسة المستند من الذاكرة",
+          "path_parameters": {
+            "session_id": "string"
+          },
+          "response": {
+            "message": "string"
+          }
+        },
+        "/document/{session_id}/page/{page_number}/question": {
+          "method": "POST",
+          "description": "طرح سؤال حول صفحة/شريحة محددة مع تحليل الصورة",
+          "path_parameters": {
+            "session_id": "string",
+            "page_number": "integer"
+          },
+          "request": {
+            "question": "string"
+          },
+          "response": {
+            "answer": "string",
+            "session_id": "string",
+            "page_number": "integer",
+            "question": "string"
+          }
+        },
+        "/document/text-to-speech": {
+          "method": "POST",
+          "description": "Convert text to speech using the selected provider (Gemini). تحويل النص إلى صوت باستخدام موفر الخدمة المحدد (Gemini).",
+          "request": {
+            "text": "string",
+            "provider": "string (default: 'gemini')"
+          },
+          "response": "audio file (binary)"
+        },
+        "/document/speech-to-text": {
+          "method": "POST",
+          "description": "Converts speech from an audio file to text using Gemini. تحويل الصوت من ملف صوتي إلى نص باستخدام Gemini.",
+          "request": {
+            "audio": "UploadFile (audio)",
+            "language_code": "string (Form data, default: 'en')"
+          },
+          "response": {
+            "text": "string"
+          }
+        },
+        "/document/ping": {
+          "method": "GET",
+          "description": "فحص صحة خدمة قراءة المستندات",
+          "response": {
+            "service": "string",
+            "status": "string",
+            "active_sessions": "integer"
+          }
+        }
+      }
+    }
+  },
+  "common_error_responses": {
+    "400": {
+      "description": "Bad Request - Invalid input",
+      "schema": {
+        "detail": "string"
+      }
+    },
+    "404": {
+      "description": "Not Found - Resource not found",
+      "schema": {
+        "detail": "string"
+      }
+    },
+    "429": {
+      "description": "Too Many Requests - Quota exceeded",
+      "schema": {
+        "detail": "string"
+      }
+    },
+    "500": {
+      "description": "Internal Server Error",
+      "schema": {
+        "detail": "string"
+      }
+    }
+  },
+  "supported_file_types": {
+    "form_analyzer": [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/bmp",
+      "image/tiff"
+    ],
+    "money_reader": [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/bmp",
+      "image/tiff"
+    ],
+    "document_reader": [
+      ".pptx",
+      ".ppt",
+      ".pdf"
+    ]
+  },
+  "notes": {
+    "session_management": "The API uses session-based management for form analysis and document processing. Sessions are automatically cleaned up after 30 minutes of inactivity.",
+    "language_support": "The API supports both Arabic (RTL) and English (LTR) languages.",
+    "ai_providers": "The API primarily uses Google Gemini for AI processing, with fallback mechanisms for quota limitations.",
+    "cors": "CORS is enabled for all origins, methods, and headers.",
+    "authentication": "Currently, no authentication is required for any endpoints."
+  },
+  "flutter_integration_tips": {
+    "multipart_uploads": "Use http.MultipartRequest for file uploads",
+    "session_handling": "Store session_id locally for maintaining state across API calls",
+    "error_handling": "Handle HTTP status codes 400, 404, 429, and 500 appropriately",
+    "binary_responses": "Some endpoints return binary data (images, audio) - handle accordingly",
+    "arabic_support": "Ensure proper UTF-8 encoding for Arabic text responses"
+  }
+}
