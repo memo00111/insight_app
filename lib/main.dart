@@ -6,9 +6,12 @@ import 'screens/splash_screen.dart';
 import 'screens/document_reader_screen.dart';
 import 'screens/money_reader_screen.dart';
 import 'screens/form_analyzer_screen.dart';
+import 'screens/signature_detection_test_page.dart';
 import 'providers/app_provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/storage_helper.dart';
+import 'utils/font_test.dart'; // إضافة اختبار الخطوط
+import 'widgets/connection_monitor.dart';
 
 void main() async {
   try {
@@ -21,7 +24,7 @@ void main() async {
     bool isFirstLaunch = await StorageHelper.isFirstLaunch() ?? true;
     
     // Set app version for tracking
-    await StorageHelper.setAppVersion('1.0.0');
+    await StorageHelper.setAppVersion('1.1.0');
     
     // Set system UI overlay style for dark theme
     SystemChrome.setSystemUIOverlayStyle(
@@ -66,45 +69,73 @@ class InsightApp extends StatelessWidget {
         themeMode: ThemeMode.dark,
         home: SplashScreen(isFirstLaunch: isFirstLaunch),
         builder: (context, child) {
-          // Add error boundary
+          // Add error boundary with detailed error handling
           ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+            // Log error details for debugging
+            print('🔥 Flutter Error: ${errorDetails.exception}');
+            print('📍 Stack trace: ${errorDetails.stack}');
+            
             return Scaffold(
               backgroundColor: const Color(0xFF1A1A2E),
               body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 64,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'حدث خطأ في التطبيق',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 64,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'يرجى إعادة تشغيل التطبيق',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 14,
+                      const SizedBox(height: 16),
+                      const Text(
+                        'حدث خطأ في التطبيق',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Cairo',
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'تفاصيل الخطأ: ${errorDetails.exception.toString()}',
+                        style: const TextStyle(
+                          color: Color(0xFFB8B8B8),
+                          fontSize: 12,
+                          fontFamily: 'Cairo',
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Force restart the app
+                          SystemNavigator.pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('إعادة تشغيل التطبيق'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
           };
           
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: child!,
+          // Wrap with connection monitor and Directionality
+          return ConnectionMonitor(
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            ),
           );
         },
         routes: {
@@ -112,6 +143,8 @@ class InsightApp extends StatelessWidget {
           '/document_reader': (context) => const DocumentReaderScreen(),
           '/money_reader': (context) => const MoneyReaderScreen(),
           '/form_analyzer': (context) => const FormAnalyzerScreen(),
+          '/font_test': (context) => const FontTestWidget(), // طريق اختبار الخطوط
+          '/signature_test': (context) => const SignatureDetectionTestPage(), // طريق اختبار التوقيع
         },
       ),
     );

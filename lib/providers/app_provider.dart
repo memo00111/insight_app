@@ -11,11 +11,19 @@ import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:just_audio/just_audio.dart';
+import '../utils/connection_manager.dart';
 
 class AppProvider extends ChangeNotifier {
   final InsightApiService _apiService = InsightApiService();
   final ImagePicker _picker = ImagePicker();
   late final AudioRecorder _audioRecorder;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  
+  // Connection status
+  final ConnectionManager _connectionManager = ConnectionManager();
+  bool _isOnline = true;
+  StreamSubscription<bool>? _connectionSubscription;
   
   // Loading states
   bool _isCurrencyAnalyzing = false;
@@ -39,10 +47,30 @@ class AppProvider extends ChangeNotifier {
   // Voice assistant state
   bool _isVoiceAssistantEnabled = false;
   bool get isVoiceAssistantEnabled => _isVoiceAssistantEnabled;
+  bool get isOnline => _isOnline;
   
   void setVoiceAssistantEnabled(bool value) {
     _isVoiceAssistantEnabled = value;
     notifyListeners();
+  }
+
+  // Method to play audio from bytes
+  Future<void> playAudioBytes(Uint8List audioBytes) async {
+    try {
+      // Create a temporary file for the audio
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/temp_audio_${DateTime.now().millisecondsSinceEpoch}.wav';
+      final tempFile = File(tempPath);
+      await tempFile.writeAsBytes(audioBytes);
+      
+      // Play audio using just_audio
+      final player = AudioPlayer();
+      await player.setFilePath(tempPath);
+      await player.play();
+    } catch (e) {
+      debugPrint('❌ خطأ في تشغيل الصوت: $e');
+      rethrow; // Re-throw the exception so it can be handled by the caller
+    }
   }
   
   // Getters
@@ -74,7 +102,27 @@ class AppProvider extends ChangeNotifier {
 
   AppProvider() {
     _audioRecorder = AudioRecorder();
+    _initConnectionManager();
     pingMoneyReader(); // Check service status on startup
+  }
+
+  // Initialize connection manager
+  Future<void> _initConnectionManager() async {
+    await _connectionManager.initialize();
+    _isOnline = _connectionManager.hasConnection;
+    
+    _connectionSubscription = _connectionManager.connectionStream.listen((isConnected) {
+      _isOnline = isConnected;
+      notifyListeners();
+      
+      if (isConnected) {
+        debugPrint('🌐 تم استعادة الاتصال بالإنترنت، جارٍ تحديث الحالة');
+        // Optionally refresh data when connection is restored
+        pingMoneyReader();
+      } else {
+        debugPrint('🔌 تم فقد الاتصال بالإنترنت');
+      }
+    });
   }
 
   // Method to ping the Money Reader service
@@ -308,28 +356,52 @@ class AppProvider extends ChangeNotifier {
 
       // Get temporary directory for saving audio file
       final tempDir = await getTemporaryDirectory();
-      final tempPath = '${tempDir.path}/temp_audio.m4a';
+      final tempPath = '${tempDir.path}/temp_audio.wav'; // تغيير إلى WAV
 
-      // Start recording
+      // Start recording with WAV format
       await _audioRecorder.start(
-        const RecordConfig(encoder: AudioEncoder.aacLc),
+        const RecordConfig(
+          encoder: AudioEncoder.wav, // تغيير إلى WAV
+          sampleRate: 16000, // تحديد معدل العينة المناسب
+          bitRate: 128000,
+        ),
         path: tempPath,
       );
 
-      // Wait for user to stop recording (this should be handled by UI)
-      await Future.delayed(const Duration(seconds: 10));
+      // Return the path immediately - the UI will handle stopping
+      return File(tempPath);
+    } catch (e) {
+      debugPrint('Error starting audio recording: $e');
+      return null;
+    }
+  }
 
-      // Stop recording
+  Future<File?> stopRecording() async {
+    try {
       final path = await _audioRecorder.stop();
-      
       if (path == null) {
         throw Exception('Failed to save audio recording');
       }
-
       return File(path);
     } catch (e) {
-      debugPrint('Error recording audio: $e');
+      debugPrint('Error stopping audio recording: $e');
       return null;
+    }
+  }
+
+  // Play audio from API
+  Future<void> playAudio(String audioUrl) async {
+    try {
+      // Stop any ongoing playback
+      await _audioPlayer.stop();
+      
+      // Set the audio source to the provided URL
+      await _audioPlayer.setUrl(audioUrl);
+      
+      // Play the audio
+      _audioPlayer.play();
+    } catch (e) {
+      debugPrint('Error playing audio: $e');
     }
   }
 
@@ -482,6 +554,9 @@ class AppProvider extends ChangeNotifier {
   @override
   void dispose() {
     _audioRecorder.dispose();
+    _audioPlayer.dispose();
+    _connectionSubscription?.cancel();
+    _connectionManager.dispose();
     super.dispose();
   }
 }

@@ -18,14 +18,29 @@ class ImageQualityResponse {
   });
 
   factory ImageQualityResponse.fromJson(Map<String, dynamic> json) {
+    // Log the incoming data for debugging
+    print('🔍 ImageQualityResponse.fromJson - البيانات الواردة:');
+    json.forEach((key, value) {
+      print('   $key: $value (نوع: ${value.runtimeType})');
+    });
+    
+    final languageDirection = json['language_direction']?.toString() ?? 'rtl';
+    final qualityGood = json['quality_good'] ?? false;
+    final sessionId = json['session_id']?.toString() ?? '';
+    
+    print('🔍 القيم المستخرجة:');
+    print('   languageDirection: "$languageDirection"');
+    print('   qualityGood: $qualityGood');
+    print('   sessionId: "$sessionId"');
+    
     return ImageQualityResponse(
-      languageDirection: json['language_direction'] ?? 'rtl',
-      qualityGood: json['quality_good'] ?? false,
-      qualityMessage: json['quality_message'] ?? '',
+      languageDirection: languageDirection,
+      qualityGood: qualityGood,
+      qualityMessage: json['quality_message']?.toString() ?? '',
       imageWidth: json['image_width'] ?? 0,
       imageHeight: json['image_height'] ?? 0,
-      sessionId: json['session_id'] ?? '',
-      formExplanation: json['form_explanation'] ?? '',
+      sessionId: sessionId,
+      formExplanation: json['form_explanation']?.toString() ?? '',
     );
   }
 

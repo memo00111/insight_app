@@ -40,7 +40,7 @@ class SpeechService {
   // Start listening
   Future<void> startListening({
     required Function(String) onResult,
-    String localeId = 'ar_SA',
+    String localeId = 'ar-SA',
     Duration timeout = const Duration(seconds: 10),
   }) async {
     if (!_isInitialized) {
@@ -59,6 +59,7 @@ class SpeechService {
           _lastWords = result.recognizedWords;
           if (result.finalResult) {
             onResult(_lastWords);
+            _isListening = false; // تحديث الحالة بعد انتهاء الاستماع
           }
         },
         localeId: localeId,
@@ -68,6 +69,7 @@ class SpeechService {
       );
       } catch (e) {
         _isListening = false;
+        _lastError = e.toString();
       }
   }
 
@@ -200,6 +202,46 @@ class SpeechService {
       return address;
     }
     return '';
+  }
+
+  // التحقق من أوامر التخطي
+  bool isSkipCommand(String text) {
+    text = text.toLowerCase().trim();
+    
+    // أوامر التخطي باللغة العربية والإنجليزية
+    final skipCommands = [
+      'تجاوز', 'تخطي', 'تخطى', 'تجاوز هذا', 'تخطي هذا',
+      'التالي', 'انتقل للتالي', 'التالي من فضلك',
+      'skip', 'next', 'pass', 'move on', 'go next',
+      'skip this', 'next field', 'move to next'
+    ];
+    
+    return skipCommands.any((cmd) => text.contains(cmd));
+  }
+
+  // استخراج إجابة نعم/لا للحقول المنطقية
+  bool? parseYesNoAnswer(String text) {
+    text = text.toLowerCase().trim();
+    
+    // كلمات الإيجاب
+    final positiveWords = [
+      'نعم', 'أجل', 'صحيح', 'حدد', 'اختر', 'موافق', 'تمام',
+      'yes', 'ok', 'correct', 'right', 'check', 'select', 'true'
+    ];
+    
+    // كلمات النفي
+    final negativeWords = [
+      'لا', 'كلا', 'خطأ', 'لا تحدد', 'لا تختر', 'غير صحيح',
+      'no', 'false', 'wrong', 'don\'t check', 'uncheck', 'incorrect'
+    ];
+    
+    if (positiveWords.any((word) => text.contains(word))) {
+      return true;
+    } else if (negativeWords.any((word) => text.contains(word))) {
+      return false;
+    }
+    
+    return null; // غير واضح
   }
 
   // Check microphone permission

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for development purposes -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <!-- Trust the system certificates -->
+            <certificates src="system" />
+            <!-- Trust user added certificates for debugging -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- For production, you might want to restrict to specific domains -->
+    <!-- 
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">your-api-domain.com</domain>
+    </domain-config>
+    -->
+</network-security-config>
