@@ -36,7 +36,7 @@ class AppTheme {
       ),
       // App Bar Theme
       appBarTheme: const AppBarTheme(
-        backgroundColor: surfaceColor,
+        backgroundColor: Color.fromARGB(255, 128, 128, 174),
         foregroundColor: textPrimaryColor,
         elevation: 0,
         scrolledUnderElevation: 0,

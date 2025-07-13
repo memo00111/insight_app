@@ -1970,6 +1970,46 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
     });
   }
 
+  Widget _buildVoiceAssistantSwitch() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.mic,
+            color: _voiceAssistantEnabled ? Colors.green : Colors.grey,
+            size: 20,
+          ),
+          Switch(
+            value: _voiceAssistantEnabled,
+            onChanged: (bool value) {
+              final appProvider = Provider.of<AppProvider>(context, listen: false);
+              appProvider.setVoiceAssistantEnabled(value);
+              setState(() => _voiceAssistantEnabled = value);
+              
+              // إظهار رسالة للمستخدم
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    _languageDirection == 'rtl'
+                      ? (value ? 'تم تفعيل المساعد الصوتي' : 'تم إيقاف المساعد الصوتي')
+                      : (value ? 'Voice Assistant Enabled' : 'Voice Assistant Disabled'),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: value ? Colors.green : Colors.grey,
+                ),
+              );
+            },
+            activeColor: Colors.green,
+            inactiveThumbColor: Colors.grey,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1986,37 +2026,8 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          // زر تبديل المساعد الصوتي
-          IconButton(
-            icon: Icon(
-              _voiceAssistantEnabled ? Icons.mic : Icons.mic_off,
-              color: _voiceAssistantEnabled ? Colors.green : Colors.grey,
-            ),
-            onPressed: () {
-              final appProvider = Provider.of<AppProvider>(context, listen: false);
-              final newState = !_voiceAssistantEnabled;
-              appProvider.setVoiceAssistantEnabled(newState);
-              setState(() {
-                _voiceAssistantEnabled = newState;
-              });
-              
-              // إظهار رسالة تأكيد
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _languageDirection == 'rtl' 
-                      ? (newState ? 'تم تفعيل المساعد الصوتي' : 'تم إيقاف المساعد الصوتي')
-                      : (newState ? 'Voice Assistant Enabled' : 'Voice Assistant Disabled'),
-                  ),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: newState ? Colors.green : Colors.orange,
-                ),
-              );
-            },
-            tooltip: _languageDirection == 'rtl' 
-              ? (_voiceAssistantEnabled ? 'إيقاف المساعد الصوتي' : 'تفعيل المساعد الصوتي')
-              : (_voiceAssistantEnabled ? 'Disable Voice Assistant' : 'Enable Voice Assistant'),
-          ),
+          // مفتاح تبديل المساعد الصوتي
+          _buildVoiceAssistantSwitch(),
           if (_formFields.isNotEmpty && !_isLoading)
             IconButton(
               icon: const Icon(Icons.download),

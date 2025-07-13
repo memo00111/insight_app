@@ -36,8 +36,7 @@ class _MoneyReaderScreenState extends State<MoneyReaderScreen> {
                 _buildImageSelector(),
                 const SizedBox(height: 20),
                 if (provider.isCurrencyAnalyzing) _buildLoadingWidget(),
-                if (provider.currencyErrorMessage != null) 
-                  _buildErrorWidget(provider.currencyErrorMessage!),
+                // تم إزالة عرض رسائل الخطأ
                 if (provider.currencyAnalysisResult != null)
                   _buildResultsSection(provider.currencyAnalysisResult!),
               ],
@@ -228,18 +227,6 @@ class _MoneyReaderScreenState extends State<MoneyReaderScreen> {
     );
   }
 
-  Widget _buildErrorWidget(String error) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: widgets.ErrorWidget(
-          message: error,
-          onRetry: _selectedImage != null ? _analyzeCurrency : null,
-        ),
-      ),
-    );
-  }
-
   Widget _buildResultsSection(CurrencyAnalysisResponse result) {
     return Card(
       child: Padding(
@@ -311,8 +298,12 @@ class _MoneyReaderScreenState extends State<MoneyReaderScreen> {
 
   Future<void> _analyzeCurrency() async {
     if (_selectedImage != null) {
-      await Provider.of<AppProvider>(context, listen: false)
-          .analyzeCurrency(_selectedImage!);
+      try {
+        await Provider.of<AppProvider>(context, listen: false)
+            .analyzeCurrency(_selectedImage!);
+      } catch (e) {
+        // عدم إظهار أي رسالة خطأ
+      }
     }
   }
 }

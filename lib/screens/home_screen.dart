@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'sa3dne',
+                      'saedne',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

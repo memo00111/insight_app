@@ -175,7 +175,8 @@ class AppProvider extends ChangeNotifier {
       final result = await _apiService.analyzeMoney(imageFile);
       _currencyAnalysisResult = result;
     } catch (e) {
-      _currencyErrorMessage = e.toString();
+      // عدم حفظ أي رسالة خطأ
+      debugPrint('Error analyzing currency: $e');
     } finally {
       _isCurrencyAnalyzing = false;
       notifyListeners();
