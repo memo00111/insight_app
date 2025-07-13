@@ -20,6 +20,13 @@ class AppProvider extends ChangeNotifier {
   late final AudioRecorder _audioRecorder;
   final AudioPlayer _audioPlayer = AudioPlayer();
   
+  // Helper method to safely call notifyListeners
+  void _safeNotifyListeners() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+  
   // Connection status
   final ConnectionManager _connectionManager = ConnectionManager();
   bool _isOnline = true;
@@ -51,7 +58,7 @@ class AppProvider extends ChangeNotifier {
   
   void setVoiceAssistantEnabled(bool value) {
     _isVoiceAssistantEnabled = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   // Method to play audio from bytes
@@ -102,8 +109,11 @@ class AppProvider extends ChangeNotifier {
 
   AppProvider() {
     _audioRecorder = AudioRecorder();
-    _initConnectionManager();
-    pingMoneyReader(); // Check service status on startup
+    // تأجيل عمليات التهيئة لتجنب استدعاء notifyListeners أثناء البناء
+    Future.microtask(() {
+      _initConnectionManager();
+      pingMoneyReader(); // Check service status on startup
+    });
   }
 
   // Initialize connection manager
@@ -113,12 +123,14 @@ class AppProvider extends ChangeNotifier {
     
     _connectionSubscription = _connectionManager.connectionStream.listen((isConnected) {
       _isOnline = isConnected;
-      notifyListeners();
+      
+      // تأجيل notifyListeners لتجنب استدعائه أثناء البناء
+      _safeNotifyListeners();
       
       if (isConnected) {
         debugPrint('🌐 تم استعادة الاتصال بالإنترنت، جارٍ تحديث الحالة');
         // Optionally refresh data when connection is restored
-        pingMoneyReader();
+        Future.microtask(() => pingMoneyReader());
       } else {
         debugPrint('🔌 تم فقد الاتصال بالإنترنت');
       }
@@ -133,7 +145,11 @@ class AppProvider extends ChangeNotifier {
     } catch (e) {
       print('Error pinging Money Reader service: $e');
       _currencyErrorMessage = 'فشل في الاتصال بخدمة تحليل العملات';
-      notifyListeners();
+      
+      // تأجيل notifyListeners لتجنب استدعائه أثناء البناء
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -169,7 +185,9 @@ class AppProvider extends ChangeNotifier {
   void clearCurrencyAnalysis() {
     _currencyAnalysisResult = null;
     _currencyErrorMessage = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   void clearDocumentAnalysis() {
@@ -178,7 +196,9 @@ class AppProvider extends ChangeNotifier {
     _documentErrorMessage = null;
     _currentSessionId = null;
     _currentPageNumber = 1;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   // Additional utility methods
@@ -200,7 +220,9 @@ class AppProvider extends ChangeNotifier {
   // Setters
   void setCurrentTabIndex(int index) {
     _currentTabIndex = index;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
   
   // Image picking methods
@@ -298,7 +320,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> navigateWithVoice(String voiceCommand) async {
     if (_currentSessionId == null) {
       _documentErrorMessage = 'لا توجد جلسة مستند نشطة';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return;
     }
 
@@ -310,11 +334,15 @@ class AppProvider extends ChangeNotifier {
         await _analyzeSlide(result.targetPage);
       } else {
         _documentErrorMessage = result.message;
-        notifyListeners();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
       }
     } catch (e) {
       _documentErrorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -322,13 +350,17 @@ class AppProvider extends ChangeNotifier {
   Future<void> navigateToPage(int pageNumber) async {
     if (!hasActiveDocument) {
       _documentErrorMessage = 'لا توجد جلسة مستند نشطة';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return;
     }
     
     if (pageNumber < 1 || pageNumber > _documentUploadResult!.totalPages) {
       _documentErrorMessage = 'رقم الصفحة غير صحيح. يجب أن يكون بين 1 و ${_documentUploadResult!.totalPages}';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return;
     }
     
@@ -337,7 +369,9 @@ class AppProvider extends ChangeNotifier {
 
   void clearDocumentError() {
     _documentErrorMessage = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   Future<void> retryLastOperation() async {
@@ -407,11 +441,13 @@ class AppProvider extends ChangeNotifier {
 
   // Form Image Quality Check
   Future<Map<String, dynamic>> checkFormImageQuality(File imageFile) async {
-    // تأجيل notifyListeners إلى ما بعد البناء
     _isFormAnalyzing = true;
     _formErrorMessage = null;
-    await Future.delayed(Duration.zero);
-    notifyListeners();
+    
+    // تأجيل notifyListeners إلى ما بعد البناء
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       final result = await _apiService.checkFormImageQuality(imageFile);
@@ -422,7 +458,9 @@ class AppProvider extends ChangeNotifier {
       throw e;
     } finally {
       _isFormAnalyzing = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -434,7 +472,9 @@ class AppProvider extends ChangeNotifier {
   }) async {
     _isFormAnalyzing = true;
     _formErrorMessage = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       final result = await _apiService.analyzeFormData(
@@ -448,7 +488,9 @@ class AppProvider extends ChangeNotifier {
       throw e;
     } finally {
       _isFormAnalyzing = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -470,7 +512,9 @@ class AppProvider extends ChangeNotifier {
       );
     } catch (e) {
       _formErrorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       throw e;
     }
   }
@@ -481,7 +525,9 @@ class AppProvider extends ChangeNotifier {
       return await _apiService.formTextToSpeech(text);
     } catch (e) {
       _formErrorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       throw e;
     }
   }
@@ -492,7 +538,9 @@ class AppProvider extends ChangeNotifier {
       return await _apiService.formSpeechToText(audioBytes, languageCode);
     } catch (e) {
       _formErrorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       throw e;
     }
   }
@@ -504,10 +552,14 @@ class AppProvider extends ChangeNotifier {
       if (_formSessionId == sessionId) {
         _formSessionId = null;
       }
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       _formErrorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       throw e;
     }
   }
@@ -518,7 +570,9 @@ class AppProvider extends ChangeNotifier {
       return await _apiService.getFormSessionInfo();
     } catch (e) {
       _formErrorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       throw e;
     }
   }
@@ -531,7 +585,9 @@ class AppProvider extends ChangeNotifier {
   // Clear form error
   void clearFormError() {
     _formErrorMessage = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   // Request storage permissions

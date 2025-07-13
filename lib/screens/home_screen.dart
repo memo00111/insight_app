@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Insight',
+                      'sa3dne',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -130,29 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/font_test'),
-                icon: const Icon(
-                  Icons.text_fields,
-                  color: AppTheme.textSecondaryColor,
-                ),
-                tooltip: 'اختبار الخطوط',
-              ),
-              IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/signature_test'),
-                icon: const Icon(
-                  Icons.draw,
-                  color: AppTheme.textSecondaryColor,
-                ),
-                tooltip: 'اختبار كشف التوقيع',
-              ),
-              IconButton(
-                onPressed: () => _showInfoDialog(),
-                icon: const Icon(
-                  Icons.info_outline,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
+              
             ],
           ),
         ],

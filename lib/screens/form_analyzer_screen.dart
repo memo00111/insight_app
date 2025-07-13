@@ -156,12 +156,12 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
               subtitle: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'JPG, PNG' : 'JPG, PNG'),
               onTap: () => Navigator.pop(context, 'image'),
             ),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'ملف PDF' : 'PDF File'),
-              subtitle: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'مستندات PDF' : 'PDF Documents'),
-              onTap: () => Navigator.pop(context, 'pdf'),
-            ),
+            // ListTile(
+            //   leading: const Icon(Icons.picture_as_pdf),
+            //   title: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'ملف PDF' : 'PDF File'),
+            //   subtitle: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'مستندات PDF' : 'PDF Documents'),
+            //   onTap: () => Navigator.pop(context, 'pdf'),
+            // ),
           ],
         ),
         actions: [
