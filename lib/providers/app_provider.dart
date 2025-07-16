@@ -227,10 +227,10 @@ class AppProvider extends ChangeNotifier {
   }
   
   // Image picking methods
-  Future<XFile?> pickImage() async {
+  Future<XFile?> pickImage({ImageSource source = ImageSource.gallery}) async {
     try {
       final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 100,
       );
       return image;

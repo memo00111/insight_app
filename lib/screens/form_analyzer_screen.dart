@@ -2,8 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'dart:ui';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../utils/app_theme.dart';
 import '../providers/app_provider.dart';
 import '../models/form_analysis_response.dart';
 import '../utils/signature_field_detector.dart';
@@ -98,8 +100,14 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
       if (choice == null) return;
       
       File? pickedFile;
-      if (choice == 'image') {
-        final imageFile = await appProvider.pickImage();
+      if (choice == 'gallery') {
+        final imageFile = await appProvider.pickImage(source: ImageSource.gallery);
+        if (imageFile != null) {
+          pickedFile = File(imageFile.path);
+          _isPdfFile = false;
+        }
+      } else if (choice == 'camera') {
+        final imageFile = await appProvider.pickImage(source: ImageSource.camera);
         if (imageFile != null) {
           pickedFile = File(imageFile.path);
           _isPdfFile = false;
@@ -151,10 +159,16 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.image),
-              title: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'صورة' : 'Image'),
+              leading: const Icon(Icons.photo_library),
+              title: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'اختيار من المعرض' : 'Choose from Gallery'),
               subtitle: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'JPG, PNG' : 'JPG, PNG'),
-              onTap: () => Navigator.pop(context, 'image'),
+              onTap: () => Navigator.pop(context, 'gallery'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'التقاط صورة' : 'Take Photo'),
+              subtitle: Text((_languageDirection ?? 'rtl') == 'rtl' ? 'استخدام الكاميرا' : 'Use Camera'),
+              onTap: () => Navigator.pop(context, 'camera'),
             ),
             // ListTile(
             //   leading: const Icon(Icons.picture_as_pdf),
@@ -1856,8 +1870,8 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
-        color: Colors.purpleAccent.withOpacity(0.05),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+        color: AppTheme.primaryColor.withOpacity(0.05),
       ),
       child: Row(
         children: [
@@ -1868,7 +1882,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
               setState(() {});
               _updateLivePreview();
             },
-            activeColor: Colors.purpleAccent,
+            activeColor: AppTheme.primaryColor,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1894,15 +1908,15 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
         hintText: field.label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.purpleAccent.withOpacity(0.5)),
+          borderSide: BorderSide(color: AppTheme.primaryColor.withOpacity(0.5)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.purpleAccent.withOpacity(0.3)),
+          borderSide: BorderSide(color: AppTheme.primaryColor.withOpacity(0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.purpleAccent),
+          borderSide: BorderSide(color: AppTheme.primaryColor),
         ),
         filled: true,
         fillColor: Colors.purpleAccent.withOpacity(0.05),
@@ -2013,7 +2027,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1421),
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
           _languageDirection == 'rtl' ? 'تحليل النماذج' : 'Form Analyzer',
@@ -2022,9 +2036,9 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF1A1F37),
+        backgroundColor: AppTheme.surfaceColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppTheme.primaryColor),
         actions: [
           // مفتاح تبديل المساعد الصوتي
           _buildVoiceAssistantSwitch(),
@@ -2173,13 +2187,13 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
                               colors: [Color(0xFF1E2340), Color(0xFF252A4A)],
                             ),
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                            border: Border.all(color: const Color.fromARGB(255, 28, 63, 112).withOpacity(0.3)),
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                                 strokeWidth: 3,
                               ),
                               const SizedBox(height: 16),
@@ -2205,13 +2219,9 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(32),
                                   decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [Color(0xFF1E2340), Color(0xFF252A4A)],
-                                    ),
+                                    color: AppTheme.surfaceColor,
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                                    border: Border.all(color: const Color.fromARGB(255, 31, 42, 139).withOpacity(0.3)),
                                   ),
                                   child: Column(
                                     children: [
@@ -2249,7 +2259,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
                                         icon: const Icon(Icons.upload_file),
                                         label: Text(_languageDirection == 'rtl' ? 'اختيار ملف' : 'Choose File'),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.purpleAccent,
+                                          backgroundColor: const Color.fromARGB(255, 37, 48, 166),
                                           foregroundColor: Colors.white,
                                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -2292,7 +2302,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
                                         Text(
                                           _formFields[_currentFieldIndex].label,
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: AppTheme.textPrimaryColor,
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -2367,7 +2377,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
                                                     ? (_languageDirection == 'rtl' ? 'إضافة توقيع' : 'Add Signature')
                                                     : (_languageDirection == 'rtl' ? 'حفظ' : 'Save')),
                                                 style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Colors.purpleAccent,
+                                                  backgroundColor: AppTheme.primaryColor,
                                                   foregroundColor: Colors.white,
                                                 ),
                                               ),
@@ -2397,7 +2407,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
                                   width: double.infinity,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
                                     color: const Color(0xFF1A1F37),
                                   ),
                                   child: ClipRRect(

@@ -203,17 +203,17 @@ class _DocumentReaderScreenState extends State<DocumentReaderScreen> {
             const SizedBox(height: 16),
             
             // Health Check Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _checkServerHealth,
-                icon: const Icon(Icons.health_and_safety),
-                label: const Text('اختبار حالة الخادم'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.successColor,
-                ),
-              ),
-            ),
+            // SizedBox(
+            //   width: double.infinity,
+            //   child: ElevatedButton.icon(
+            //     onPressed: _checkServerHealth,
+            //     icon: const Icon(Icons.health_and_safety),
+            //     label: const Text('اختبار حالة الخادم'),
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: AppTheme.successColor,
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 16),
             
             if (_selectedDocument != null) 

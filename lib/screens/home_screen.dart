@@ -65,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(
           children: [
             _buildHeader(),
-            _buildTabBar(),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -73,6 +72,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppTheme.textSecondaryColor.withOpacity(0.1),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: TabBar(
+            controller: _tabController,
+            tabs: _tabs.map((tab) => _buildBottomTab(tab)).toList(),
+            indicator: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.primaryColor.withOpacity(0.3),
+              ),
+            ),
+            indicatorPadding: const EdgeInsets.all(4),
+            labelColor: AppTheme.primaryColor,
+            unselectedLabelColor: AppTheme.textSecondaryColor,
+            dividerColor: Colors.transparent,
+            labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: const TextStyle(fontSize: 12),
+          ),
         ),
       ),
     );
@@ -96,15 +131,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  Icons.auto_awesome,
-                  color: AppTheme.primaryColor,
-                  size: 28,
+                child: Image.asset(
+                  'assets/icon/logo-01.png',
+                  height: 40,
+                  width: 40,
                 ),
               ),
               const SizedBox(width: 16),
@@ -138,43 +172,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.textSecondaryColor.withOpacity(0.1),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        tabs: _tabs.map((tab) => _buildTab(tab)).toList(),
-        indicator: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppTheme.primaryColor.withOpacity(0.3),
-          ),
-        ),
-        indicatorPadding: const EdgeInsets.all(4),
-        labelColor: AppTheme.primaryColor,
-        unselectedLabelColor: AppTheme.textSecondaryColor,
-        dividerColor: Colors.transparent,
-        labelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.normal,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTab(TabData tabData) {
+  Widget _buildBottomTab(TabData tabData) {
     return Consumer<AppProvider>(
       builder: (context, provider, child) {
         final isActive = _tabs.indexOf(tabData) == provider.currentTabIndex;
@@ -201,74 +199,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _showInfoDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(
-              Icons.info,
-              color: AppTheme.primaryColor,
-            ),
-            SizedBox(width: 8),
-            Text(
-              'حول التطبيق',
-              style: TextStyle(
-                color: AppTheme.textPrimaryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Insight - المساعد الذكي',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'تطبيق ذكي يوفر ثلاث خدمات رئيسية:',
-              style: TextStyle(color: AppTheme.textPrimaryColor),
-            ),
-            SizedBox(height: 8),
-            _InfoItem(
-              icon: Icons.description,
-              title: 'تحليل النماذج',
-              description: 'تحليل النماذج واستخراج الحقول',
-            ),
-            _InfoItem(
-              icon: Icons.monetization_on,
-              title: 'تحليل العملات',
-              description: 'تحديد نوع وقيمة العملات',
-            ),
-            _InfoItem(
-              icon: Icons.picture_as_pdf,
-              title: 'قراءة المستندات',
-              description: 'قراءة وتحليل ملفات PDF و PowerPoint',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 class TabData {
