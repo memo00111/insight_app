@@ -132,11 +132,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
+                
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Image.asset(
-                  'assets/icon/logo-01.png',
+                  'assets/icon/w-logo-02.png',
                   height: 40,
                   width: 40,
                 ),
@@ -147,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'saedne',
+                      'ساعدني',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

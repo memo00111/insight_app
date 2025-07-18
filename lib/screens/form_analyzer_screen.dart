@@ -740,8 +740,17 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
   }
 
   // عرض شرح للنموذج مع دعم شرح متتابع للصفحات
-  void _showFormExplanation() {
+  Future<void> _showFormExplanation() async {
     if (_formExplanation == null) return;
+    
+    // قراءة الشرح صوتياً
+    try {
+      final appProvider = Provider.of<AppProvider>(context, listen: false);
+      final audioBytes = await appProvider.convertFormTextToSpeech(_formExplanation!);
+      appProvider.playAudioBytes(audioBytes);
+    } catch (e) {
+      debugPrint('❌ خطأ في قراءة شرح النموذج صوتياً: $e');
+    }
     
     // للصفحات المتعددة، نعرض شرح الصفحة الأولى ثم نتيح الانتقال للصفحات الأخرى
     if (_isPdfMultiPage && _pdfPagesWithFields.isNotEmpty) {
@@ -753,7 +762,31 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           title: Text(_languageDirection == 'rtl' ? 'شرح النموذج' : 'Form Explanation'),
-          content: Text(_formExplanation!),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_formExplanation!),
+              const SizedBox(height: 16),
+              // زر إعادة الاستماع للشرح
+              ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    final appProvider = Provider.of<AppProvider>(context, listen: false);
+                    final audioBytes = await appProvider.convertFormTextToSpeech(_formExplanation!);
+                    appProvider.playAudioBytes(audioBytes);
+                  } catch (e) {
+                    debugPrint('❌ خطأ في إعادة قراءة الشرح: $e');
+                  }
+                },
+                icon: const Icon(Icons.volume_up),
+                label: Text(_languageDirection == 'rtl' ? 'إعادة الاستماع' : 'Listen Again'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -769,7 +802,7 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
   }
   
   // عرض شرح لصفحة معينة من النموذج
-  void _showPageExplanation(int pageNumber, {bool isFirstPage = false}) {
+  Future<void> _showPageExplanation(int pageNumber, {bool isFirstPage = false}) async {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     
     // نستخدم API للحصول على شرح الصفحة المحددة
@@ -777,10 +810,18 @@ class _FormAnalyzerScreenState extends State<FormAnalyzerScreen> {
       sessionId: _pdfSessionId!,
       pageNumber: pageNumber,
       languageDirection: _languageDirection!,
-    ).then((explainResponse) {
+    ).then((explainResponse) async {
       if (mounted) {
         final pageExplanation = explainResponse['page_explanation'] ?? 
                                (_languageDirection == 'rtl' ? 'شرح الصفحة غير متاح' : 'Page explanation not available');
+                               
+        // قراءة شرح الصفحة صوتياً
+        try {
+          final audioBytes = await appProvider.convertFormTextToSpeech(pageExplanation);
+          appProvider.playAudioBytes(audioBytes);
+        } catch (e) {
+          debugPrint('❌ خطأ في قراءة شرح الصفحة صوتياً: $e');
+        }
         
         showDialog(
           context: context,

@@ -122,7 +122,18 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: Center(
+      body: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppTheme.backgroundColor,
+              AppTheme.backgroundColor.withOpacity(0.8),
+            ],
+          ),
+        ),
         child: AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
@@ -157,10 +168,11 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.auto_awesome,
-                        size: 80,
-                        color: AppTheme.primaryColor,
+                      child: Image.asset(
+                        'assets/icon/logo-01.png',
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -171,7 +183,7 @@ class _SplashScreenState extends State<SplashScreen>
                         end: Alignment.centerLeft,
                       ).createShader(bounds),
                       child: const Text(
-                        AppConstants.appName,
+                        "ساعدني",
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,

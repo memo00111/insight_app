@@ -32,7 +32,7 @@ class AppConstants {
   static const String lastUsedTabKey = 'last_used_tab';
   
   // App Info
-  static const String appName = 'Insight';
+  static const String appName = 'Saedne';
   static const String appVersion = '1.0.0';
   static const String developerName = 'Mohamed';
   static const String appDescription = 'المساعد الذكي للتحليل والقراءة';
