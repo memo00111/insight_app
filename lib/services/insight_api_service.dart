@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class InsightApiService {
-  static const String baseUrl = 'https://opulent-space-zebra-7vvrpgvgjwgqhpq9q-8000.app.github.dev/';
+  static const String baseUrl = 'http://34.134.153.40:8080';
   late Dio _dio;
 
   InsightApiService() {

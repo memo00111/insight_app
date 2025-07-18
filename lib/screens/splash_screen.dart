@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
-import '../utils/network_helper.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
 
@@ -57,14 +56,6 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkSystemStatus() async {
     await Future.delayed(const Duration(seconds: 3));
     
-    // Check internet connection
-    final hasInternet = await NetworkHelper.hasInternetConnection();
-    
-    if (!hasInternet) {
-      _showNoInternetDialog();
-      return;
-    }
-
     // Navigate to home
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -74,42 +65,6 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       );
     }
-  }
-
-  void _showNoInternetDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.wifi_off, color: AppTheme.errorColor),
-            SizedBox(width: 8),
-            Text(
-              'لا يوجد اتصال بالإنترنت',
-              style: TextStyle(color: AppTheme.textPrimaryColor),
-            ),
-          ],
-        ),
-        content: const Text(
-          'يحتاج التطبيق إلى الإنترنت للعمل بشكل صحيح. تأكد من اتصالك وحاول مرة أخرى.',
-          style: TextStyle(color: AppTheme.textPrimaryColor),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _checkSystemStatus();
-            },
-            child: const Text('إعادة المحاولة'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
